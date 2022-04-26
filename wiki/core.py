@@ -10,6 +10,7 @@ import re
 from flask import abort
 from flask import url_for
 import markdown
+from datetime import datetime
 
 
 def clean_url(url):
@@ -172,6 +173,9 @@ class Page(object):
         if not new:
             self.load()
             self.render()
+        else:
+            self.date = datetime.now().strftime("%Y %B %d")
+
 
     def __repr__(self):
         return "<Page: {}@{}>".format(self.url, self.path)
@@ -186,6 +190,7 @@ class Page(object):
 
     def save(self, update=True):
         folder = os.path.dirname(self.path)
+        self.date = datetime.now().strftime("%Y %B %d")#update the last time the page was edited
         if not os.path.exists(folder):
             os.makedirs(folder)
         with open(self.path, 'w', encoding='utf-8') as f:
@@ -236,6 +241,18 @@ class Page(object):
     @tags.setter
     def tags(self, value):
         self['tags'] = value
+
+    @property
+    def date(self):
+        try:
+            return self['date']
+        except KeyError:
+            return ""
+
+    @date.setter
+    def date(self, value):
+        self['date'] = value
+            # take the current date; datetime.now().strftime("%Y %B %d")
 
 
 class Wiki(object):
@@ -365,7 +382,7 @@ class Wiki(object):
                 tagged.append(page)
         return sorted(tagged, key=lambda x: x.title.lower())
 
-    def search(self, term, ignore_case=True, attrs=['title', 'tags', 'body']):
+    def search(self, term, ignore_case=True, attrs=['title', 'tags', 'body','date']):
         pages = self.index()
         regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
         matched = []
