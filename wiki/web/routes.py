@@ -2,7 +2,7 @@
     Routes
     ~~~~~~
 """
-from flask import Blueprint
+from flask import Blueprint, abort
 from flask import flash
 from flask import redirect
 from flask import render_template
@@ -14,14 +14,14 @@ from flask_login import login_user
 from flask_login import logout_user
 
 from wiki.core import Processor
-from wiki.web.forms import EditorForm
+from wiki.web.forms import EditorForm, RegisterForm, UnregisterForm
 from wiki.web.forms import LoginForm
 from wiki.web.forms import SearchForm
 from wiki.web.forms import URLForm
-from wiki.web import current_wiki
+from wiki.web import current_wiki, current_profiles
 from wiki.web import current_users
+from wiki.web.profile import Profile
 from wiki.web.user import protect
-
 
 bp = Blueprint('wiki', __name__)
 
@@ -150,6 +150,43 @@ def user_logout():
     return redirect(url_for('wiki.index'))
 
 
+@bp.route('/user/register/', methods=['GET', 'POST'])
+def user_register():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = current_users.add_user(form.username.data, form.password.data)
+        current_profiles.add_profile(Profile(form.username.data, form.full_name.data, form.bio.data))
+        login_user(user)
+        user.set('authenticated', True)
+        flash('Registration successful.', 'success')
+        return redirect(request.args.get("next") or url_for('wiki.index'))
+    return render_template('register.html', form=form)
+
+
+@bp.route('/user/unregister/', methods=['GET', 'POST'])
+@protect
+def user_unregister():
+    form = UnregisterForm()
+    if form.validate_on_submit():
+        username = current_user.get_id()
+        current_user.set('authenticated', False)
+        current_users.delete_user(username)
+        current_profiles.delete_profile(username)
+        logout_user()
+        flash(f"Account {username} deleted", 'success')
+        return redirect(url_for('wiki.user_login'))
+    return render_template('unregister.html', form=form)
+
+
+@bp.route('/user/<username>', methods=['GET', 'POST'])
+@protect
+def user_profile(username):
+    profile = current_profiles.get_profile(username)
+    if not profile:
+        profile = abort(404)
+    return render_template('profile.html', profile=profile)
+
+
 @bp.route('/user/')
 def user_index():
     pass
@@ -179,4 +216,3 @@ def user_delete(user_id):
 @bp.errorhandler(404)
 def page_not_found(error):
     return render_template('404.html'), 404
-

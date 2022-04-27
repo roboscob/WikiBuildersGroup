@@ -12,9 +12,9 @@ from flask import current_app
 from flask_login import current_user
 
 
-
 class UserManager(object):
     """A very simple user Manager, that saves it's data as json."""
+
     def __init__(self, path):
         self.file = os.path.join(path, 'users.json')
 
@@ -98,9 +98,6 @@ class User(object):
     def is_active(self):
         return self.data.get('active')
 
-    def is_anonymous(self):
-        return False
-
     def get_id(self):
         return self.name
 
@@ -145,4 +142,5 @@ def protect(f):
         if current_app.config.get('PRIVATE') and not current_user.is_authenticated:
             return current_app.login_manager.unauthorized()
         return f(*args, **kwargs)
+
     return wrapper

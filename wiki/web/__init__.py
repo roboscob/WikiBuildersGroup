@@ -7,10 +7,13 @@ from flask_login import LoginManager
 from werkzeug.local import LocalProxy
 
 from wiki.core import Wiki
+from wiki.web.profile import ProfileManager
 from wiki.web.user import UserManager
+
 
 class WikiError(Exception):
     pass
+
 
 def get_wiki():
     wiki = getattr(g, '_wiki', None)
@@ -18,7 +21,9 @@ def get_wiki():
         wiki = g._wiki = Wiki(current_app.config['CONTENT_DIR'])
     return wiki
 
+
 current_wiki = LocalProxy(get_wiki)
+
 
 def get_users():
     users = getattr(g, '_users', None)
@@ -26,7 +31,18 @@ def get_users():
         users = g._users = UserManager(current_app.config['USER_DIR'])
     return users
 
+
 current_users = LocalProxy(get_users)
+
+
+def get_profiles():
+    profiles = getattr(g, '_profiles', None)
+    if profiles is None:
+        profiles = g._profiles = ProfileManager(current_app.config['PROFILE_DB'])
+    return profiles
+
+
+current_profiles = LocalProxy(get_profiles)
 
 
 def create_app(directory):
@@ -51,6 +67,7 @@ def create_app(directory):
 
 loginmanager = LoginManager()
 loginmanager.login_view = 'wiki.user_login'
+
 
 @loginmanager.user_loader
 def load_user(name):

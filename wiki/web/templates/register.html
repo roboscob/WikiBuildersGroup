@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "helpers.html" import render_field %}
+
+{% block title %}Register{% endblock title %}
+
+{% block content %}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ render_field(form.username) }}
+        {{ render_field(form.password) }}
+        {{ render_field(form.confirm) }}
+        {{ render_field(form.full_name) }}
+        {{ render_field(form.bio) }}
+        <input type="submit" class="btn btn-primary" value="Register">
+    </form>
+    Already have an account? <a href="{{ url_for('wiki.user_login') }}">Login</a>
+{% endblock content %}

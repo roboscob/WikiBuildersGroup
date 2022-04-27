@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "helpers.html" import render_field %}
+
+{% block title %}Unregister{% endblock title %}
+
+{% block content %}
+    This action cannot be undone.
+    This will permanently delete the {{ current_user.get_id() }} account and profile.
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        Please type <b>{{ current_user.get_id() }}</b> to confirm {{ render_field(form.username) }}
+        <input type="submit" class="btn btn-danger" value="Unregister">
+    </form>
+{% endblock content %}
