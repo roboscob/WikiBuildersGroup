@@ -4,11 +4,13 @@
 """
 from collections import OrderedDict
 from io import open
+import json
 import os
 import re
 
 from flask import abort
 from flask import url_for
+from flask import send_from_directory
 import markdown
 from datetime import datetime
 
@@ -256,8 +258,16 @@ class Page(object):
 
 
 class Wiki(object):
-    def __init__(self, root):
+    def __init__(self, root, img_root):
         self.root = root
+        self.img_root = img_root
+
+        folder = os.path.dirname(self.img_root)
+
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+            with open(self.img_root + "/image_detail.json", "x") as file:
+                file.write("{}")
 
     def path(self, url):
         return os.path.join(self.root, url + '.md')
@@ -265,6 +275,43 @@ class Wiki(object):
     def exists(self, url):
         path = self.path(url)
         return os.path.exists(path)
+
+    def img_exists(self, url):
+        return os.path.exists(os.path.join(self.img_root, url))
+
+    def get_image(self, url):
+        if self.img_exists(url):
+            return send_from_directory('static/content', url)
+        else:
+            abort(404)
+
+    def get_gallery_page(self, page_number):
+        gallery = self.get_gallery()
+        count = 6
+        page_number = int(page_number)
+        page_count = len(gallery)//count + 1
+        if (page_count < page_number): return [];
+
+        if (page_count == page_number):
+            return gallery[6 * (page_number - 1) : ]
+        else:
+
+            return gallery[6 * (page_number - 1):6 * page_number]
+
+    def get_gallery(self):
+        return [x for x in os.listdir(self.img_root) if not x.endswith("json")]
+
+    def get_image_des(self):
+        with open(os.path.join(self.img_root, "image_detail.json")) as json_file:
+            return json.load(json_file)
+
+    def save_image(self, image, des):
+        data = self.get_image_des()
+        data[image.filename] = {}
+        data[image.filename]["description"] = des
+        with open(os.path.join(self.img_root, "image_detail.json"), "w") as file:
+            json.dump(data, file)
+        image.save(os.path.join(self.img_root, image.filename))
 
     def get(self, url):
         path = self.path(url)
@@ -382,7 +429,7 @@ class Wiki(object):
                 tagged.append(page)
         return sorted(tagged, key=lambda x: x.title.lower())
 
-    def search(self, term, ignore_case=True, attrs=['title', 'tags', 'body','date']):
+    def search(self, term, ignore_case=True, attrs=['title', 'tags', 'body']):
         pages = self.index()
         regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
         matched = []

@@ -18,12 +18,11 @@ class WikiError(Exception):
 def get_wiki():
     wiki = getattr(g, '_wiki', None)
     if wiki is None:
-        wiki = g._wiki = Wiki(current_app.config['CONTENT_DIR'])
+        wiki = g._wiki = Wiki(current_app.config['CONTENT_DIR'], current_app.config['PIC_BASE'])
     return wiki
 
 
 current_wiki = LocalProxy(get_wiki)
-
 
 def get_users():
     users = getattr(g, '_users', None)
@@ -40,7 +39,6 @@ def get_profiles():
     if profiles is None:
         profiles = g._profiles = ProfileManager(current_app.config['PROFILE_DB'])
     return profiles
-
 
 current_profiles = LocalProxy(get_profiles)
 

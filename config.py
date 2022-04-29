@@ -3,7 +3,7 @@
 SECRET_KEY = 'a unique and long key'
 TITLE = 'Riki'
 HISTORY_SHOW_MAX = 30
-PIC_BASE = '/static/content/'
+PIC_BASE = './wiki/web/static/content'
 CONTENT_DIR = './content'
 USER_DIR = './user'
 PROFILE_DB = 'user/profiles.db'

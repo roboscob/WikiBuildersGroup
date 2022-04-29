@@ -25,7 +25,6 @@ from wiki.web.user import protect
 
 bp = Blueprint('wiki', __name__)
 
-
 @bp.route('/')
 @protect
 def home():
@@ -34,13 +33,16 @@ def home():
         return display('home')
     return render_template('home.html')
 
-
 @bp.route('/index/')
 @protect
 def index():
     pages = current_wiki.index()
     return render_template('index.html', pages=pages)
 
+@bp.route('/static/content/<path:image_name>')
+@protect
+def send_file(image_name):
+    return current_wiki.get_image(image_name)
 
 @bp.route('/<path:url>/')
 @protect
@@ -48,6 +50,14 @@ def display(url):
     page = current_wiki.get_or_404(url)
     return render_template('page.html', page=page)
 
+@bp.route('/image/<path:page_number>', methods=['GET', 'POST'])
+@protect
+def image(page_number):
+    return render_template('images.html',
+        current_page = int(page_number[1:]) ,
+        gallery = current_wiki.get_gallery_page(page_number[1:]),
+        final_page = len(current_wiki.get_gallery()) // 6 + 1,
+        des = current_wiki.get_image_des())
 
 @bp.route('/create/', methods=['GET', 'POST'])
 @protect
@@ -58,6 +68,24 @@ def create():
             'wiki.edit', url=form.clean_url(form.url.data)))
     return render_template('create.html', form=form)
 
+@bp.route('/upload', methods=["GET", "POST"])
+@protect
+def upload():
+    if request.method == "POST":
+        image = request.files["image"]
+        description = request.form.get("description")
+
+        if image and description and image.filename.split(".")[-1].lower() in ["png", "jpg", "jpeg", "gif"]:
+            if (current_wiki.img_exists(image.filename)):
+                flash("Image already exist!", "danger")
+            else:
+                current_wiki.save_image(image, description)
+                flash("Successfully uploaded image to gallery!", "success")
+            return redirect(url_for("wiki.upload"))
+        else:
+            flash("An error occurred while uploading the image!", "danger")
+            return redirect(url_for("wiki.upload"))
+    return render_template("upload.html")
 
 @bp.route('/edit/<path:url>/', methods=['GET', 'POST'])
 @protect
