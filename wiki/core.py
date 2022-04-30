@@ -177,6 +177,8 @@ class Page(object):
             self.render()
         else:
             self.date = datetime.now().strftime("%Y %B %d")
+            # if a new page is being created then a date should be given to it immediately
+
 
 
     def __repr__(self):
@@ -246,6 +248,11 @@ class Page(object):
 
     @property
     def date(self):
+        """
+        A date property is created to hold the date value of a given page that is
+            to be stored in the meta to later be accessed.
+        :return: the value of date
+        """
         try:
             return self['date']
         except KeyError:
@@ -253,6 +260,10 @@ class Page(object):
 
     @date.setter
     def date(self, value):
+        """
+        :param value: the value that date will be set to
+        :return: nothing
+        """
         self['date'] = value
             # take the current date; datetime.now().strftime("%Y %B %d")
 
@@ -430,6 +441,12 @@ class Wiki(object):
         return sorted(tagged, key=lambda x: x.title.lower())
 
     def search(self, term, ignore_case=True, attrs=['title', 'tags', 'body','date']):
+        """
+        :param term: will search for a given word, phrase, or set of values in a page
+        :param ignore_case: will ignore the case and only look for the string of values
+        :param attrs: will search for the given term among the title, tags, body, and date attributes
+        :return: an array of pages that have the given search term.
+        """
         pages = self.index()
         regex = re.compile(term, re.IGNORECASE if ignore_case else 0)
         matched = []
