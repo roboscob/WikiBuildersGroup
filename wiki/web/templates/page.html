@@ -35,5 +35,7 @@
 	<li><a href="{{ url_for('wiki.edit', url=page.url) }}">Edit</a></li>
   <li><a href="{{ url_for('wiki.move', url=page.url) }}">Move</a></li>
   <li><a href="#confirmDelete" data-toggle="modal" class="text-error">Delete</a></li>
+  <li><a href="{{ url_for('wiki.topdf', url=page.url) }}">Download PDF</a></li>
+  <li><a href="{{ url_for('wiki.totxt', url=page.url) }}">Download TXT</a></li>
 </ul>
 {% endblock sidebar %}

@@ -2,18 +2,23 @@
     Routes
     ~~~~~~
 """
+import os
+
+import flask.helpers
 from flask import Blueprint, abort
 from flask import flash
 from flask import redirect
 from flask import render_template
 from flask import request
 from flask import url_for
+from flask import send_file
 from flask_login import current_user
 from flask_login import login_required
 from flask_login import login_user
 from flask_login import logout_user
 
 from wiki.core import Processor
+from wiki.web.downloads import generatePDF, generateTXT
 from wiki.web.forms import EditorForm, RegisterForm, UnregisterForm
 from wiki.web.forms import LoginForm
 from wiki.web.forms import SearchForm
@@ -49,6 +54,28 @@ def send_file(image_name):
 def display(url):
     page = current_wiki.get_or_404(url)
     return render_template('page.html', page=page)
+
+
+@bp.route('/<path:url>/pdf')
+@protect
+def topdf(url):
+    page = current_wiki.get_or_404(url)
+    html = render_template('pdf_and_txt_page.html', page=page)
+    pdf_file_path = f"{os.getcwd()}/{url}.pdf"
+    print(pdf_file_path)
+    generatePDF(pdf_file_path, html)
+    return flask.helpers.send_file(pdf_file_path, as_attachment=True)
+
+
+@bp.route('/<path:url>/txt')
+@protect
+def totxt(url):
+    page = current_wiki.get_or_404(url)
+    html = render_template('pdf_and_txt_page.html', page=page)
+    txt_file_path = f"{os.getcwd()}/{url}.txt"
+    print(txt_file_path)
+    generateTXT(txt_file_path, html)
+    return flask.helpers.send_file(txt_file_path, as_attachment=True)
 
 @bp.route('/image/<path:page_number>', methods=['GET', 'POST'])
 @protect
